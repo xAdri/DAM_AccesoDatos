@@ -10,14 +10,8 @@ namespace WebApplication1.Controllers
 {
     public class ApuestasController : ApiController
     {
-        // GET: api/Apuestas
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
         // GET: api/Apuestas/5
-        public List<Apuesta> Get(int id)
+        public List<Apuesta> Get()
         {
             var repo = new ApuestasRepository();
             List<Apuesta> apuesta = repo.Retrieve();
@@ -25,8 +19,10 @@ namespace WebApplication1.Controllers
         }
 
         // POST: api/Apuestas
-        public void Post([FromBody]string value)
+        public void Post([FromBody]Apuesta value)
         {
+            var repo = new ApuestasRepository();
+            repo.Save(value);
         }
 
         // PUT: api/Apuestas/5

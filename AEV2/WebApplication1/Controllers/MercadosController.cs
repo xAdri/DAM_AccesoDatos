@@ -10,14 +10,8 @@ namespace WebApplication1.Controllers
 {
     public class MercadosController : ApiController
     {
-        // GET: api/Mercados
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
         // GET: api/Mercados/5
-        public List<Mercado> Get(int id)
+        public List<Mercado> Get()
         {
             var repo = new MercadosRepository();
             List<Mercado> mercado = repo.Retrieve();

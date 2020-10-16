@@ -10,14 +10,8 @@ namespace WebApplication1.Controllers
 {
     public class UsuariosController : ApiController
     {
-        // GET: api/Usuario
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
         // GET: api/Usuario/5
-        public List<Usuario> Get(int id)
+        public List<Usuario> Get()
         {
             var repo = new UsuariosRepository();
             List<Usuario> usuario = repo.Retrieve();

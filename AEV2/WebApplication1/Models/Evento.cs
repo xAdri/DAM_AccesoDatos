@@ -19,5 +19,12 @@ namespace WebApplication1.Models
             EquipoVisitante = equipoVisitante;
             FechaEvento = fechaEvento;
         }
+
+        public Evento(string equipoLocal, string equipoVisitante, DateTime fechaEvento)
+        {
+            EquipoLocal = equipoLocal;
+            EquipoVisitante = equipoVisitante;
+            FechaEvento = fechaEvento;
+        }
     }
 }

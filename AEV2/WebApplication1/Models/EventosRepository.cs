@@ -43,5 +43,34 @@ namespace WebApplication1.Models
                 return null;
             }
         }
+
+        internal List<Evento> GetEventos()
+        {
+            List<Evento> eventos = new List<Evento>();
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT * FROM EVENTO";
+
+            try
+            {
+                connection.Open();
+                MySqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    string equipo_local = reader.GetString(1);
+                    string equipo_visitante = reader.GetString(2);
+                    DateTime fecha = reader.GetDateTime(3);
+                    eventos.Add(new Evento(equipo_local, equipo_visitante, fecha));
+                }
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Error connection");
+            }
+            return eventos;
+        }
+
+
     }
 }

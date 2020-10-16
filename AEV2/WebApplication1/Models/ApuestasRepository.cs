@@ -31,7 +31,7 @@ namespace WebApplication1.Models
 
                 while (reader.Read())
                 {
-                    Apuesta ap = new Apuesta(reader.GetInt32(0), reader.GetDouble(1), reader.GetDouble(2), reader.GetDouble(3), reader.GetDateTime(4));
+                    Apuesta ap = new Apuesta(reader.GetInt32(0), reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3), reader.GetDateTime(4));
                     apuestas.Add(ap);
                 }
                 connection.Close();
@@ -41,6 +41,24 @@ namespace WebApplication1.Models
             {
                 Debug.WriteLine("Error al conectarse con la Base de Datos.");
                 return null;
+            }
+        }
+
+        internal void Save(Apuesta apuesta)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
+            command.CommandText = "INSERT INTO apuestas(idApuesta,tipo,cuota,dinero,fechaApuesta,USUARIO_email) VALUES ('" + apuesta.IdApuesta + "' , '" + apuesta.Tipo + "' ,'" + apuesta.Cuota + "' ,'" + apuesta.Dinero + "' ,'" + apuesta.FechaApuesta + "' , '" + apuesta.FechaApuesta + "' );";
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Error Insert Apuesta");
             }
         }
     }
