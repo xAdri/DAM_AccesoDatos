@@ -71,6 +71,26 @@ namespace WebApplication1.Models
             return eventos;
         }
 
+        internal List<Evento> RetriveTipoMercado(String tipo)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand comand = connection.CreateCommand();
 
+            comand.CommandText = "select * from evento INNERJOIN mercado ON evento.idEvento where 'overUnder' = " + tipo;
+            connection.Open();
+
+            MySqlDataReader reader = comand.ExecuteReader();
+            List<Evento> eventos = new List<Evento>();
+
+
+            if (reader.Read())
+            {
+                Evento ev = new Evento(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetDateTime(3));
+                eventos.Add(ev);
+
+            }
+            connection.Close();
+            return eventos;
+        }
     }
 }

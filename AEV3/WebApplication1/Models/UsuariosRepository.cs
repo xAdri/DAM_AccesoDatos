@@ -43,5 +43,15 @@ namespace WebApplication1.Models
                 return null;
             }
         }
+
+        internal void RetrieveApuestasEmail(string email, double tipoMercado)
+        {
+            // Esto esta mal
+            string query = "SELECT * FROM apuesta " + "INNER JOIN mercado ON apuesta.USUARIO_email = mercado.idMercado " + "INNER JOIN evento ON evento.idEvento = mercado.USUARIO_email " + "WHERE email = @email AND overUnder = @overUnder;";
+
+            MySqlCommand command = new MySqlCommand(query);
+            command.Parameters.AddWithValue("@email", email);
+            command.Parameters.AddWithValue("@overUnder", tipoMercado);
+        }
     }
 }
