@@ -84,33 +84,52 @@ namespace WebApplication1.Models
             cultInfo.NumberFormat.CurrencyDecimalSeparator = ".";
             System.Threading.Thread.CurrentThread.CurrentCulture = cultInfo;
 
-            command.CommandText = "INSERT INTO apuestas(idApuesta,tipo,cuota,dinero,fechaApuesta,USUARIO_email) VALUES ('" + apuesta.IdApuesta + "' , '" + apuesta.Tipo + "' ,'" + apuesta.Cuota + "' ,'" + apuesta.Dinero + "' ,'" + apuesta.FechaApuesta + "' , '" + apuesta.FechaApuesta + "' );";
+            //command.CommandText = "INSERT INTO apuestas(idApuesta,tipo,cuota,dinero,fechaApuesta,USUARIO_email) VALUES ('" + apuesta.IdApuesta + "' , '" + apuesta.Tipo + "' ,'" + apuesta.Cuota + "' ,'" + apuesta.Dinero + "' ,'" + apuesta.FechaApuesta + "' , '" + apuesta.FechaApuesta + "' );";
+            command.CommandText = "Select * from mercado where idMercado " + apuesta.IdApuesta + ";";
 
             try
             {
                 connection.Open();
-                command.ExecuteNonQuery();
-                connection.Close();
+                MySqlDataReader reader = command.ExecuteReader();
 
+                Mercado mercado = new Mercado(reader.GetInt32(0), reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3), reader.GetDouble(4), reader.GetDouble(5));
+
+                // Probabilidad dependiendo de Over Under
+                double resultado = 0;
+                double probabilidad = 0;
                 string tipoApuesta = apuesta.Tipo.ToLower();
 
-                // No me da tiempo a acabarlo para la entrega de viernes, 16 de octubre de 2020, 23:59, en la AEV4 haré commit de lo que falta, lo siento
                 if (tipoApuesta == "over")
                 {
-
+                    probabilidad = mercado.DineroOver / (mercado.DineroOver + mercado.DineroUnder);
                 }
                 else if (tipoApuesta == "under")
                 {
-
+                    probabilidad = mercado.DineroUnder / (mercado.DineroOver + mercado.DineroUnder);
                 }
 
+                resultado = 1 / probabilidad * 0.95;
 
-                // No me da tiempo a acabar el trabajo a tiempo para antes de la hora de entrega, estará para el pr
+                if (tipoApuesta == "over")
+                {
+                    command.CommandText = "Update mercado set CuotaOver =" + Math.Round(resultado, 2) + ", DineroOver =" + mercado.DineroOver + ";";
+                }
+                else if (tipoApuesta == "under")
+                {
+                    command.CommandText = "Update mercado set CuotaUnder =" + Math.Round(resultado, 2) + ", DineroUnder =" + mercado.DineroUnder + ";";
+                }
+
+                command.ExecuteNonQuery();
+                reader.Close();
+                connection.Close();
+
             }
             catch (Exception e)
             {
-                Debug.WriteLine("Error Insert Apuesta");
+                Debug.WriteLine("Error de conexion Insert Apuesta");
             }
         }
+
+
     }
 }
