@@ -58,7 +58,7 @@ namespace WebApplication1.Models
 
                 while (reader.Read())
                 {
-                    ApuestaDTO ap = new ApuestaDTO(reader.GetString(0), reader.GetDouble(1), reader.GetDouble(2), reader.GetDateTime(3));
+                    ApuestaDTO ap = new ApuestaDTO(reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3), reader.GetDateTime(4));
                     apuestas.Add(ap);
                 }
                 connection.Close();
