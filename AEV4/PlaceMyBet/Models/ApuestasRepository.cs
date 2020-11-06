@@ -31,7 +31,7 @@ namespace WebApplication1.Models
 
                 while (reader.Read())
                 {
-                    Apuesta ap = new Apuesta(reader.GetInt32(0), reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3), reader.GetDateTime(4));
+                    Apuesta ap = new Apuesta(reader.GetInt32(0), reader.GetInt32(1), reader.GetString(2), reader.GetDouble(3), reader.GetDouble(4), reader.GetMySqlDateTime(5).ToString(), reader.GetString(6));
                     apuestas.Add(ap);
                 }
                 connection.Close();
@@ -58,7 +58,7 @@ namespace WebApplication1.Models
 
                 while (reader.Read())
                 {
-                    ApuestaDTO ap = new ApuestaDTO(reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3), reader.GetDateTime(4));
+                    ApuestaDTO ap = new ApuestaDTO(reader.GetString(5), reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3), reader.GetMySqlDateTime(4).ToString());
                     apuestas.Add(ap);
                 }
                 connection.Close();
@@ -75,6 +75,8 @@ namespace WebApplication1.Models
         {
             MySqlConnection connection = Conexion();
             MySqlCommand command = connection.CreateCommand();
+            MySqlCommand commandDinero = connection.CreateCommand();
+            MySqlCommand commandCuotas = connection.CreateCommand();
 
             // . = ,
             CultureInfo cultInfo = new System.Globalization.CultureInfo("es-ES");
@@ -84,52 +86,114 @@ namespace WebApplication1.Models
             cultInfo.NumberFormat.CurrencyDecimalSeparator = ".";
             System.Threading.Thread.CurrentThread.CurrentCulture = cultInfo;
 
-            //command.CommandText = "INSERT INTO apuestas(idApuesta,tipo,cuota,dinero,fechaApuesta,USUARIO_email) VALUES ('" + apuesta.IdApuesta + "' , '" + apuesta.Tipo + "' ,'" + apuesta.Cuota + "' ,'" + apuesta.Dinero + "' ,'" + apuesta.FechaApuesta + "' , '" + apuesta.FechaApuesta + "' );";
-            command.CommandText = "Select * from mercado where idMercado " + apuesta.IdApuesta + ";";
+            DateTime dt = DateTime.Now;
+            string fechaApuesta = dt.ToString("yyyyMMddHHmmss");
+
+            command.CommandText = "INSERT INTO apuesta (idApuesta,tipo,cuota,dinero,fechaApuesta,USUARIO_email) VALUES ('" + apuesta.IdApuesta + "' , '" + apuesta.Tipo + "' ,'" + apuesta.Cuota + "' ,'" + apuesta.Dinero + "' ,'" + fechaApuesta + "' , '" + apuesta.Email + "' );";
+            commandDinero.CommandText = "";
 
             try
             {
                 connection.Open();
-                MySqlDataReader reader = command.ExecuteReader();
-
-                Mercado mercado = new Mercado(reader.GetInt32(0), reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3), reader.GetDouble(4), reader.GetDouble(5));
 
                 // Probabilidad dependiendo de Over Under
-                double resultado = 0;
-                double probabilidad = 0;
                 string tipoApuesta = apuesta.Tipo.ToLower();
+                double over = ResolverDineroOver(apuesta.IdMercado);
+                double under = ResolverDineroUnder(apuesta.IdMercado);
+                double probabilidadOver = ResolverProbabilidadOver(over, under);
+                double probabilidadUnder = ResolverProbabilidadUnder(over, under);
+                double cuota;
 
                 if (tipoApuesta == "over")
                 {
-                    probabilidad = mercado.DineroOver / (mercado.DineroOver + mercado.DineroUnder);
+                    cuota = (double)ResolverCuotaOver(apuesta.IdMercado);
+                    double calcularOver = ResolverCuota(probabilidadOver);
+
                 }
                 else if (tipoApuesta == "under")
                 {
-                    probabilidad = mercado.DineroUnder / (mercado.DineroOver + mercado.DineroUnder);
+                    cuota = (double)ResolverCuotaUnder(apuesta.IdMercado);
                 }
-
-                resultado = 1 / probabilidad * 0.95;
-
-                if (tipoApuesta == "over")
-                {
-                    command.CommandText = "Update mercado set CuotaOver =" + Math.Round(resultado, 2) + ", DineroOver =" + mercado.DineroOver + ";";
-                }
-                else if (tipoApuesta == "under")
-                {
-                    command.CommandText = "Update mercado set CuotaUnder =" + Math.Round(resultado, 2) + ", DineroUnder =" + mercado.DineroUnder + ";";
-                }
-
+                
                 command.ExecuteNonQuery();
-                reader.Close();
                 connection.Close();
 
             }
-            catch (Exception e)
+            catch (MySqlException e)
             {
-                Debug.WriteLine("Error de conexion Insert Apuesta");
+                Debug.WriteLine(e);
             }
         }
 
+        internal double ResolverCuotaOver(int mercado)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT CuotaOver FROM mercados WHERE IdMercado = " + mercado + ";";
+
+            connection.Open();
+            double cuota = Convert.ToDouble(command.ExecuteScalar());
+            connection.Close();
+
+            return cuota;
+        }
+
+        internal double ResolverCuotaUnder(int mercado)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT CuotaUnder FROM mercados WHERE IdMercado = " + mercado + ";";
+
+            connection.Open();
+            double cuota = Convert.ToDouble(command.ExecuteScalar());
+            connection.Close();
+
+            return cuota;
+        }
+
+        internal double ResolverDineroOver(int mercado)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT DineroOver FROM mercados WHERE IdMercado =" + mercado + ";";
+
+            connection.Open();
+            double probabilidad = Convert.ToDouble(command.ExecuteScalar());
+            connection.Close();
+
+            return probabilidad;
+        }
+
+        internal double ResolverDineroUnder(int mercado)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT DineroUnder FROM mercados WHERE IdMercado =" + mercado + ";";
+
+            connection.Open();
+            double probabilidad = Convert.ToDouble(command.ExecuteScalar());
+            connection.Close();
+
+            return probabilidad;
+        }
+
+        internal double ResolverCuota(double probabilidad)
+        {
+            double cuota = (1 / probabilidad) * 0.95;
+            return cuota;
+        }
+
+        internal double ResolverProbabilidadUnder(double dineroOver, double dineroUnder)
+        {
+            double probabilidad = dineroUnder / (dineroOver + dineroUnder);
+            return probabilidad;
+        }
+
+        internal double ResolverProbabilidadOver(double dineroOver, double dineroUnder)
+        {
+            double probabilidad = dineroOver / (dineroOver + dineroUnder);
+            return probabilidad;
+        }
 
     }
 }

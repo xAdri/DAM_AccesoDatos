@@ -60,10 +60,8 @@ namespace WebApplication1.Models
                     string overUnder = reader.GetString(1);
                     double cuotaOver = reader.GetDouble(2);
                     double cuotaUnder = reader.GetDouble(3);
-                    double dineroOver = reader.GetDouble(4);
-                    double dineroUnder = reader.GetDouble(5);
 
-                    mercados.Add(new MercadoDTO(overUnder, cuotaOver, cuotaUnder, dineroOver, dineroUnder));
+                    mercados.Add(new MercadoDTO(overUnder, cuotaOver, cuotaUnder));
                 }
                 connection.Close();
             }
