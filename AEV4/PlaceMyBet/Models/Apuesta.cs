@@ -44,4 +44,20 @@ namespace WebApplication1.Models
             FechaApuesta = fechaApuesta;
         }
     }
+
+    public class ApuestaRec
+    {
+        public int IdApuesta { get; set; }
+        public string Tipo { get; set; }
+        public double Cuota { get; set; }
+        public double Dinero { get; set; }
+
+        public ApuestaRec(int idApuesta, string tipo, double cuota, double dinero)
+        {
+            IdApuesta = idApuesta;
+            Tipo = tipo;
+            Cuota = cuota;
+            Dinero = dinero;
+        }
+    }
 }

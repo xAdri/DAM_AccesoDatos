@@ -8,12 +8,10 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
 {
-    [Route("api/Mercados/{action}")]
+    //[Route("api/Mercados/{action}")]
     public class MercadosController : ApiController
     {
         // GET: api/Mercados/5
-        [HttpGet]
-        [ActionName("Get")]
         public IEnumerable<Mercado> Get()
         {
             var repo = new MercadosRepository();
@@ -21,13 +19,20 @@ namespace WebApplication1.Controllers
             return mercado;
         }
 
-        [HttpGet]
-        [ActionName("GetDTO")]
         public IEnumerable<MercadoDTO> GetDTO()
         {
             var repo = new MercadosRepository();
             List<MercadoDTO> mercado = repo.RetrieveDTO();
             return mercado;
+        }
+
+        //[Route("api/Mercados/Get/cuota={cuota}/email={email}")]
+        // localhost:44327/api/Mercados?tipo=1.5&email=1
+        public IEnumerable<Apuesta> GetEmail(double cuota, string email)
+        {
+            var repo = new MercadosRepository();
+            List<Apuesta> mercados = repo.ApuestasUsuario(cuota, email);
+            return mercados;
         }
 
         // POST: api/Mercados

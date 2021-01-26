@@ -99,5 +99,34 @@ namespace WebApplication1.Models
                 return null;
             }
         }
+
+        internal List<Apuesta> ApuestasUsuario(double cuota, string email)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
+            //command.CommandText = "SELECT * FROM `apuesta` WHERE `cuota` = '" + cuota + "' AND `USUARIO_email` LIKE '" + email + "'";
+            command.CommandText = "SELECT* FROM `apuesta` WHERE `cuota` = 1.5 AND `USUARIO_email` LIKE 'adriperez@gmail.com'";
+            
+
+            try
+            {
+                connection.Open();
+                MySqlDataReader reader = command.ExecuteReader();
+                List<Apuesta> mercados = new List<Apuesta>();
+
+                while (reader.Read())
+                {
+                    Apuesta me = new Apuesta(reader.GetInt32(0), reader.GetInt32(1), reader.GetString(2), reader.GetDouble(3), reader.GetDouble(4), reader.GetString(5), reader.GetString(6));
+                    mercados.Add(me);
+                }
+                connection.Close();
+                return mercados;
+            }
+            catch (MySqlException ex)
+            {
+                Debug.WriteLine("Error al conectarse con la Base de Datos.");
+                return null;
+            }
+        }
     }
 }

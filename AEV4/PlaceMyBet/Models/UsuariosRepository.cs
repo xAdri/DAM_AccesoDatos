@@ -44,14 +44,26 @@ namespace WebApplication1.Models
             }
         }
 
-        internal void RetrieveApuestasEmail(string email, double tipoMercado)
+        internal List<Apuesta> RetrieveApuestasEmail(string email, string tipo)
         {
-            // Esto esta mal
-            string query = "SELECT * FROM apuesta " + "INNER JOIN mercado ON apuesta.USUARIO_email = mercado.idMercado " + "INNER JOIN evento ON evento.idEvento = mercado.USUARIO_email " + "WHERE email = @email AND overUnder = @overUnder;";
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
 
-            MySqlCommand command = new MySqlCommand(query);
-            command.Parameters.AddWithValue("@email", email);
-            command.Parameters.AddWithValue("@overUnder", tipoMercado);
+            command.CommandText = "SELECT * FROM `apuesta` WHERE `tipo` LIKE '" + tipo + "' AND `USUARIO_email` LIKE '" + email + "'";
+            connection.Open();
+
+
+            MySqlDataReader reader = command.ExecuteReader();
+            List<Apuesta> apuestas = new List<Apuesta>();
+
+            while (reader.Read())
+            {
+                Apuesta ev = new Apuesta(reader.GetInt32(0), reader.GetInt32(1), reader.GetString(2), reader.GetDouble(3), reader.GetDouble(4), reader.GetString(5), reader.GetString(6));
+                apuestas.Add(ev);
+            }
+
+            connection.Close();
+            return apuestas;
         }
     }
 }

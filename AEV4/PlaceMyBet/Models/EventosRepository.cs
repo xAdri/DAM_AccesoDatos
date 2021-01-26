@@ -71,19 +71,21 @@ namespace WebApplication1.Models
             return eventos;
         }
 
-        internal List<Evento> RetriveTipoMercado(String tipo)
+        internal List<Evento> RetriveEventoTipoMercado(string tipo, int idEvento)
         {
             MySqlConnection connection = Conexion();
             MySqlCommand comand = connection.CreateCommand();
 
-            comand.CommandText = "select * from evento INNER JOIN mercado ON evento.idEvento where 'overUnder' =" + tipo;
+            //comand.CommandText = "select * from evento INNER JOIN mercado ON evento.idEvento where 'overUnder' =" + tipo;
+            comand.CommandText = "SELECT * FROM `mercado` WHERE `overUnder` LIKE '" + tipo + "' AND `EVENTO_idEvento` = '" + idEvento + "'";
+
             connection.Open();
 
             MySqlDataReader reader = comand.ExecuteReader();
             List<Evento> eventos = new List<Evento>();
 
 
-            if (reader.Read())
+            while (reader.Read())
             {
                 Evento ev = new Evento(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), reader.GetDateTime(3));
                 eventos.Add(ev);
@@ -91,6 +93,29 @@ namespace WebApplication1.Models
 
             connection.Close();
             return eventos;
+        }
+
+        internal List<Mercado> RetriveTipoMercado(string tipo, int idEvento)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand comand = connection.CreateCommand();
+
+            //comand.CommandText = "select * from evento INNER JOIN mercado ON evento.idEvento where 'overUnder' =" + tipo;
+            comand.CommandText = "SELECT * FROM `mercado` WHERE `overUnder` LIKE '" + tipo + "' AND `EVENTO_idEvento` = '" + idEvento + "'";
+            connection.Open();
+
+            MySqlDataReader reader = comand.ExecuteReader();
+            List<Mercado> mercados = new List<Mercado>();
+
+
+            while (reader.Read())
+            {
+                Mercado ev = new Mercado(reader.GetInt32(0), reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3), reader.GetDouble(4), reader.GetDouble(5));
+                mercados.Add(ev);
+            }
+
+            connection.Close();
+            return mercados;
         }
     }
 }

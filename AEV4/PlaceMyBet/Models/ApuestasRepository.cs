@@ -75,8 +75,6 @@ namespace WebApplication1.Models
         {
             MySqlConnection connection = Conexion();
             MySqlCommand command = connection.CreateCommand();
-            MySqlCommand commandDinero = connection.CreateCommand();
-            MySqlCommand commandCuotas = connection.CreateCommand();
 
             // . = ,
             CultureInfo cultInfo = new System.Globalization.CultureInfo("es-ES");
@@ -89,32 +87,13 @@ namespace WebApplication1.Models
             DateTime dt = DateTime.Now;
             string fechaApuesta = dt.ToString("yyyyMMddHHmmss");
 
-            command.CommandText = "INSERT INTO apuesta (idApuesta,tipo,cuota,dinero,fechaApuesta,USUARIO_email) VALUES ('" + apuesta.IdApuesta + "' , '" + apuesta.Tipo + "' ,'" + apuesta.Cuota + "' ,'" + apuesta.Dinero + "' ,'" + fechaApuesta + "' , '" + apuesta.Email + "' );";
-            commandDinero.CommandText = "";
-
             try
             {
                 connection.Open();
 
-                // Probabilidad dependiendo de Over Under
-                string tipoApuesta = apuesta.Tipo.ToLower();
-                double over = ResolverDineroOver(apuesta.IdMercado);
-                double under = ResolverDineroUnder(apuesta.IdMercado);
-                double probabilidadOver = ResolverProbabilidadOver(over, under);
-                double probabilidadUnder = ResolverProbabilidadUnder(over, under);
-                double cuota;
+                command.CommandText = "INSERT INTO apuesta (idApuesta, idMercado,tipo,cuota,dinero,fechaApuesta,USUARIO_email) " +
+                "VALUES ('" + apuesta.IdApuesta + "' , '" + apuesta.IdMercado + "' , '" + apuesta.Tipo + "' ,'" + apuesta.Cuota + "' ,'" + apuesta.Dinero + "' ,'" + fechaApuesta + "' , '" + apuesta.Email + "' );";
 
-                if (tipoApuesta == "over")
-                {
-                    cuota = (double)ResolverCuotaOver(apuesta.IdMercado);
-                    double calcularOver = ResolverCuota(probabilidadOver);
-
-                }
-                else if (tipoApuesta == "under")
-                {
-                    cuota = (double)ResolverCuotaUnder(apuesta.IdMercado);
-                }
-                
                 command.ExecuteNonQuery();
                 connection.Close();
 
@@ -125,75 +104,118 @@ namespace WebApplication1.Models
             }
         }
 
-        internal double ResolverCuotaOver(int mercado)
+        internal void Operacion(int id)
         {
-            MySqlConnection connection = Conexion();
-            MySqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT CuotaOver FROM mercados WHERE IdMercado = " + mercado + ";";
+            MySqlConnection con = Conexion();
+            MySqlCommand comand = con.CreateCommand();
+            // Selecciona todo lo de mercados pasando la ID
+            comand.CommandText = "select * from mercado WHERE IdMercado = '" + id + "';";
+            Double probOver = 0;
+            Double probUnder = 0;
+            Double cuotaOver = 0;
+            Double cuotaUnder = 0;
+            Double Dinero_under = 0;
+            Double Dinero_over = 0;
+            try
+            {
+                con.Open();
+                MySqlDataReader reader = comand.ExecuteReader();
 
-            connection.Open();
-            double cuota = Convert.ToDouble(command.ExecuteScalar());
-            connection.Close();
 
-            return cuota;
+                while (reader.Read())
+                {
+                    Dinero_over = reader.GetDouble(4);
+                    Dinero_under = reader.GetDouble(5);
+                }
+                con.Close();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Error Conn");
+            }
+            Debug.WriteLine(Dinero_under); Debug.WriteLine(Dinero_over);
+            probOver = Dinero_over / (Dinero_over + Dinero_under);
+            Debug.WriteLine(probOver);
+            probUnder = Dinero_under / (Dinero_under + Dinero_over);
+            cuotaOver = (1 / probOver) * 0.95;
+            cuotaUnder = (1 / probUnder) * 0.95;
+            Debug.WriteLine(probUnder); Debug.WriteLine(cuotaOver); Debug.WriteLine(cuotaUnder);
+
+
+            comand.CommandText = "UPDATE `mercado` SET `cuotaOver` = '" + cuotaOver + "' , `cuotaUnder` = '" + cuotaUnder + "' WHERE `mercado`.`idMercado` = " + id;
+            try
+            {
+                con.Open();
+                comand.ExecuteNonQuery();
+                con.Close();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Error Insert Apuesta");
+            }
+
         }
 
-        internal double ResolverCuotaUnder(int mercado)
+        internal void ActualizarDinero(int id, double dinero, string overUnder)
         {
-            MySqlConnection connection = Conexion();
-            MySqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT CuotaUnder FROM mercados WHERE IdMercado = " + mercado + ";";
 
-            connection.Open();
-            double cuota = Convert.ToDouble(command.ExecuteScalar());
-            connection.Close();
+            double Dinero_over = 0;
+            double Dinero_under = 0;
 
-            return cuota;
+            MySqlConnection con = Conexion();
+            MySqlCommand comand = con.CreateCommand();
+
+            comand.CommandText = "select * from mercado WHERE IdMercado = '" + id + "';";
+            try
+            {
+                con.Open();
+                MySqlDataReader reader = comand.ExecuteReader();
+
+
+                while (reader.Read())
+                {
+                    Dinero_over = reader.GetDouble(4);
+                    Dinero_under = reader.GetDouble(5);
+                }
+                con.Close();
+            }
+            catch (Exception e)
+            { 
+                Debug.WriteLine("Error Conn");
+            }
+
+            Dinero_over += dinero;
+            Dinero_under += dinero;
+
+            if (overUnder == "over")
+            {
+                comand.CommandText = "UPDATE `mercado` SET `dineroOver` = '" + Dinero_over + "'  WHERE `mercado`.`idMercado` = " + id;
+                try
+                {
+                    con.Open();
+                    comand.ExecuteNonQuery();
+                    con.Close();
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("Error Insert Apuesta");
+                }
+            }
+
+            if (overUnder == "under")
+            {
+                comand.CommandText = "UPDATE `mercado` SET `dineroUnder` = '" + Dinero_under + "'  WHERE `mercado`.`idMercado` = " + id;
+                try
+                {
+                    con.Open();
+                    comand.ExecuteNonQuery();
+                    con.Close();
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("Error Insert Apuesta");
+                }
+            }
         }
-
-        internal double ResolverDineroOver(int mercado)
-        {
-            MySqlConnection connection = Conexion();
-            MySqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT DineroOver FROM mercados WHERE IdMercado =" + mercado + ";";
-
-            connection.Open();
-            double probabilidad = Convert.ToDouble(command.ExecuteScalar());
-            connection.Close();
-
-            return probabilidad;
-        }
-
-        internal double ResolverDineroUnder(int mercado)
-        {
-            MySqlConnection connection = Conexion();
-            MySqlCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT DineroUnder FROM mercados WHERE IdMercado =" + mercado + ";";
-
-            connection.Open();
-            double probabilidad = Convert.ToDouble(command.ExecuteScalar());
-            connection.Close();
-
-            return probabilidad;
-        }
-
-        internal double ResolverCuota(double probabilidad)
-        {
-            double cuota = (1 / probabilidad) * 0.95;
-            return cuota;
-        }
-
-        internal double ResolverProbabilidadUnder(double dineroOver, double dineroUnder)
-        {
-            double probabilidad = dineroUnder / (dineroOver + dineroUnder);
-            return probabilidad;
-        }
-
-        internal double ResolverProbabilidadOver(double dineroOver, double dineroUnder)
-        {
-            double probabilidad = dineroOver / (dineroOver + dineroUnder);
-            return probabilidad;
-        }
-
     }
 }

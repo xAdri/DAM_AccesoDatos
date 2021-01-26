@@ -12,6 +12,7 @@ namespace WebApplication1.Controllers
     public class ApuestasController : ApiController
     {
         // GET: api/Apuestas/5
+        [Authorize(Roles = "admin")]
         [HttpGet]
         [ActionName("Get")]
         public IEnumerable<Apuesta> Get()
@@ -35,6 +36,8 @@ namespace WebApplication1.Controllers
         {
             var repo = new ApuestasRepository();
             repo.Save(value);
+            repo.ActualizarDinero(value.IdMercado, value.Dinero, value.Tipo);
+            repo.Operacion(value.IdMercado);
         }
 
         // PUT: api/Apuestas/5
