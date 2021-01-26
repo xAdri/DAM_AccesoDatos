@@ -71,6 +71,36 @@ namespace WebApplication1.Models
             }
         }
 
+        // MI BASE DE DATOS ESTA MAL MI CUOTA SE LLAMA DINERO
+        internal int RetrieveCantidadApuestas(string USUARIO_email, double dinero)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
+            int cantApuestas = 0;
+            command.CommandText = "SELECT * FROM `apuesta` WHERE `dinero` > "+dinero+" AND `USUARIO_email` LIKE '"+ USUARIO_email + "'";
+
+            try
+            {
+                connection.Open();
+                MySqlDataReader reader = command.ExecuteReader();
+                List<Apuesta> apuestas = new List<Apuesta>();
+
+                while (reader.Read())
+                {
+                    Apuesta ap = new Apuesta(reader.GetInt32(0), reader.GetInt32(1), reader.GetString(2), reader.GetDouble(3), reader.GetDouble(4), reader.GetMySqlDateTime(5).ToString(), reader.GetString(6));
+                    //apuestas.Add(ap);
+                    cantApuestas++;
+                }
+                connection.Close();
+                return cantApuestas;
+            }
+            catch (MySqlException ex)
+            {
+                Debug.WriteLine("Error al conectarse con la Base de Datos.");
+                return -1;
+            }
+        }
+
         internal void Save(Apuesta apuesta)
         {
             MySqlConnection connection = Conexion();

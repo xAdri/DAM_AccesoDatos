@@ -8,11 +8,12 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
 {
-    [Route("api/Apuestas/{action}")]
+    //[Route("api/Apuestas/{action}")]
     public class ApuestasController : ApiController
     {
+        /*
         // GET: api/Apuestas/5
-        [Authorize(Roles = "admin")]
+        //[Authorize(Roles = "admin")]
         [HttpGet]
         [ActionName("Get")]
         public IEnumerable<Apuesta> Get()
@@ -28,6 +29,14 @@ namespace WebApplication1.Controllers
         {
             var repo = new ApuestasRepository();
             List<ApuestaDTO> apuesta = repo.RetrieveDTO();
+            return apuesta;
+        }
+        */
+
+        public int Get(string USUARIO_email, double dinero)
+        {
+            var repo = new ApuestasRepository();
+            int apuesta = repo.RetrieveCantidadApuestas(USUARIO_email, dinero);
             return apuesta;
         }
 
