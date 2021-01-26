@@ -101,6 +101,34 @@ namespace WebApplication1.Models
             }
         }
 
+        internal List<Apuesta> RetrievePorIdMercado(int idMercado)
+        {
+            MySqlConnection connection = Conexion();
+            MySqlCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT * FROM `apuesta` WHERE `idMercado` = " + idMercado + "";
+
+            try
+            {
+                connection.Open();
+                MySqlDataReader reader = command.ExecuteReader();
+                List<Apuesta> apuestas = new List<Apuesta>();
+
+                while (reader.Read())
+                {
+                    Apuesta ap = new Apuesta(reader.GetInt32(0), reader.GetInt32(1), reader.GetString(2), reader.GetDouble(3), reader.GetDouble(4), reader.GetMySqlDateTime(5).ToString(), reader.GetString(6));
+                    apuestas.Add(ap);
+                }
+                connection.Close();
+
+                return apuestas;
+            }
+            catch (MySqlException ex)
+            {
+                Debug.WriteLine("Error al conectarse con la Base de Datos.");
+                return null;
+            }
+        }
+
         internal void Save(Apuesta apuesta)
         {
             MySqlConnection connection = Conexion();

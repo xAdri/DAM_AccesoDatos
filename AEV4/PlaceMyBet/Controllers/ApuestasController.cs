@@ -31,12 +31,19 @@ namespace WebApplication1.Controllers
             List<ApuestaDTO> apuesta = repo.RetrieveDTO();
             return apuesta;
         }
-        */
-
+        
         public int Get(string USUARIO_email, double dinero)
         {
             var repo = new ApuestasRepository();
             int apuesta = repo.RetrieveCantidadApuestas(USUARIO_email, dinero);
+            return apuesta;
+        }
+        */
+
+        public IEnumerable<Apuesta> Get(int idMercado)
+        {
+            var repo = new ApuestasRepository();
+            List<Apuesta> apuesta = repo.RetrievePorIdMercado(idMercado);
             return apuesta;
         }
 
